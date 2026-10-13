@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador Financeiro: PixelBurgers</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-main);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    header {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .badge-user {
+      font-size: 0.9rem;
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .btn-teacher-gate {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .btn-teacher-gate:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Tela de Login */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      padding: 12px;
+      background: #0b1120;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid var(--accent);
+      border-color: transparent;
+    }
+
+    /* Placar do Caixa */
+    .finance-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0b1120;
+      padding: 14px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .balance-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .balance-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--success);
+    }
+
+    .step-indicator {
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Card de Decisão */
+    .doc-card {
+      border: 1px solid var(--border);
+      background: #131d31;
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 24px;
+    }
+
+    .doc-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .doc-type {
+      font-size: 0.75rem;
+      background: var(--border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .doc-details {
+      list-style: none;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+
+    .doc-details strong {
+      color: #fff;
+    }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    button.btn-action {
+      padding: 14px 8px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    button.btn-action:hover {
+      opacity: 0.9;
+    }
+
+    button.btn-action:active {
+      transform: scale(0.98);
+    }
+
+    .btn-pay { background: var(--success); color: #022c22; }
+    .btn-defer { background: var(--warning); color: #451a03; }
+    .btn-block { background: var(--danger); color: #450a0a; }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      color: #082f49;
+      font-weight: 600;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    /* Feedback */
+    .feedback-box {
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 18px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      display: none;
+    }
+
+    .feedback-box.correct {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid var(--success);
+      color: #86efac;
+    }
+
+    .feedback-box.incorrect {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--danger);
+      color: #fca5a5;
+    }
+
+    /* Relatório Professora */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #0b1120;
+      color: var(--accent);
+    }
+
+    .score-badge {
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div id="userBadge" class="badge-user" style="display: none;"></div>
+    <button class="btn-teacher-gate" onclick="toggleTeacherView()">Área da Professora</button>
+  </header>
+
+  <!-- TELA 1: LOGIN ALUNO -->
+  <main id="authScreen" class="container">
+    <h2 style="margin-bottom: 8px;">PixelBurgers: Setor Financeiro</h2>
+    <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 0.95rem;">
+      Identifique-se para assumir o controle do Contas a Pagar no dia 20 de Outubro.
+    </p>
+
+    <div class="form-group">
+      <label for="studentName">Nome Completo:</label>
+      <input type="text" id="studentName" placeholder="Ex: Lucas Ribeiro" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label for="studentClass">Turma / Período:</label>
+      <input type="text" id="studentClass" placeholder="Ex: 1º Ano B - Matutino" autocomplete="off">
+    </div>
+
+    <button class="btn-primary" onclick="startSimulation()">Entrar no Sistema de Pagamentos</button>
+  </main>
+
+  <!-- TELA 2: SIMULADOR -->
+  <main id="simScreen" class="container" style="display: none;">
+    <div class="finance-header">
+      <div>
+        <div class="balance-label">Saldo em Conta Corrente</div>
+        <div class="balance-value" id="balanceDisplay">R$ 3.800,00</div>
+      </div>
+      <div class="step-indicator" id="progressDisplay">Item 1 de 6</div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-title">
+        <span id="docVendor">Carregando...</span>
+        <span class="doc-type" id="docType">Boleto</span>
+      </div>
+      <ul class="doc-details">
+        <li><strong>Valor Documentado:</strong> <span id="docValue">R$ 0,00</span></li>
+        <li><strong>Vencimento:</strong> <span id="docDueDate">--/--</span></li>
+        <li style="margin-top: 8px;"><strong>Situação Física / Fiscal:</strong></li>
+        <li id="docDescription" style="color: #94a3b8; font-size: 0.9rem;">--</li>
+      </ul>
+    </div>
+
+    <div class="actions-grid" id="actionButtons">
+      <button class="btn-action btn-pay" onclick="makeDecision('PAGAR_HOJE')">Pagar Hoje</button>
+      <button class="btn-action btn-defer" onclick="makeDecision('AGENDAR')">Agendar Outra Data</button>
+      <button class="btn-action btn-block" onclick="makeDecision('BLOQUEAR')">Bloquear / Recusar</button>
+    </div>
+
+    <div id="feedbackBox" class="feedback-box">
+      <div id="feedbackText" style="margin-bottom: 14px;"></div>
+      <button class="btn-primary" id="btnNext" onclick="nextDocument()">Avançar para o Próximo Documento</button>
+    </div>
+  </main>
+
+  <!-- TELA 3: RESULTADO FINAL DO ALUNO -->
+  <main id="finalScreen" class="container" style="display: none; text-align: center;">
+    <h2 style="margin-bottom: 12px;">Fechamento do Dia Concluído!</h2>
+    <p style="color: var(--text-muted); margin-bottom: 20px;">
+      Suas decisões foram computadas e guardadas no relatório da gerência.
+    </p>
+
+    <div style="font-size: 2.4rem; font-weight: 700; color: var(--accent); margin-bottom: 8px;" id="finalScoreDisplay">
+      0/6
+    </div>
+    <p style="margin-bottom: 24px; color: var(--text-muted);" id="finalScoreMsg"></p>
+
+    <div class="finance-header" style="justify-content: center; text-align: center;">
+      <div>
+        <div class="balance-label">Saldo Final Real do Caixa</div>
+        <div class="balance-value" id="finalBalanceDisplay">R$ 0,00</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="location.reload()" style="margin-top: 16px;">Reiniciar Simulação</button>
+  </main>
+
+  <!-- TELA 4: PAINEL DA PROFESSORA -->
+  <main id="teacherScreen" class="container" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+      <h2>Painel da Professora</h2>
+      <button class="btn-teacher-gate" onclick="exitTeacherView()">Voltar ao Jogo</button>
+    </div>
+
+    <div id="teacherAuth">
+      <p style="margin-bottom: 12px; font-size: 0.9rem; color: var(--text-muted);">Digite a senha mestra para visualizar as notas:</p>
+      <input type="password" id="teacherPass" placeholder="Senha mestra (padrão: prof123)" style="margin-bottom: 12px;">
+      <button class="btn-primary" onclick="verifyTeacherPass()">Acessar Relatório</button>
+    </div>
+
+    <div id="teacherData" style="display: none;">
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button class="btn-teacher-gate" onclick="exportToCSV()">Exportar Planilha (CSV)</button>
+        <button class="btn-teacher-gate" style="color: var(--danger);" onclick="clearAllData()">Limpar Histórico</button>
+      </div>
+      <div style="overflow-x: auto;">
+        <table id="resultsTable">
+          <thead>
+            <tr>
+              <th>Data/Hora</th>
+              <th>Aluno</th>
+              <th>Turma</th>
+              <th>Acertos</th>
+              <th>Saldo Final</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // CASOS DIDÁTICOS (Equilíbrio de regras e consequências financeiras)
+    const cases = [
+      {
+        id: 1,
+        vendor: "Panificadora Trigo Dourado",
+        type: "Boleto",
+        value: 650.00,
+        actualPayable: 650.00,
+        dueDate: "20/Outubro (Hoje)",
+        description: "500 pães artesanais entregues. A Nota Fiscal foi conferida e tem a assinatura física do cozinheiro chefe no canhoto.",
+        correctAction: "PAGAR_HOJE",
+        explanation: "Correto! O serviço/produto foi conferido fisicamente, a NF é legítima e o vencimento é hoje. Pagamento regularizado."
+      },
+      {
+        id: 2,
+        vendor: "Cia de Energia Elétrica",
+        type: "Boleto em Atraso",
+        value: 800.00,
+        actualPayable: 818.50, // com multa e juros
+        dueDate: "15/Outubro (Vencido há 5 dias)",
+        description: "Ficou esquecida na gaveta. Se não for paga hoje haverá corte. Há acréscimo de 2% de multa + juros diários (Total a pagar: R$ 818,50).",
+        correctAction: "PAGAR_HOJE",
+        explanation: "Correto! Contas essenciais vencidas devem ser quitadas imediatamente para evitar suspensão das atividades da hamburgueria."
+      },
+      {
+        id: 3,
+        vendor: "Técnico Autônomo João (Fritadeira)",
+        type: "Cobrança via Chave Pix",
+        value: 450.00,
+        actualPayable: 0.00,
+        dueDate: "Cobrança Imediata",
+        description: "O conserto foi realizado ontem, mas o prestador enviou apenas a chave Pix por mensagem, sem emitir Nota Fiscal ou Recibo formal.",
+        correctAction: "BLOQUEAR",
+        explanation: "Correto! Uma empresa não pode fazer transferências sem documento contábil comprobatório (NF ou recibo legal). O pagamento fica suspenso até a emissão do documento."
+      },
+      {
+        id: 4,
+        vendor: "Embalagens Silva",
+        type: "Cheque Compensável",
+        value: 1200.00,
+        actualPayable: 1200.00,
+        dueDate: "Compromisso para Hoje (20/10)",
+        description: "Cheque pré-datado, nominal e cruzado emitido no início do mês. O fornecedor depositará hoje no banco conforme acordado.",
+        correctAction: "PAGAR_HOJE",
+        explanation: "Correto! O cheque já está assinado nas mãos do credor. A função do Contas a Pagar é garantir e liberar saldo suficiente para o cheque não voltar sem fundos."
+      },
+      {
+        id: 5,
+        vendor: "Imobiliária Aliança (Aluguel)",
+        type: "Boleto",
+        value: 2200.00,
+        actualPayable: 0.00,
+        dueDate: "28/Outubro (Daqui a 8 dias)",
+        description: "Boleto do aluguel do mês. Não há desconto comercial para antecipação de pagamento.",
+        correctAction: "AGENDAR",
+        explanation: "Correto! Antecipar sem desconto quebra o fluxo de caixa da empresa desnecessariamente. Deve-se agendar para o dia do vencimento."
+      },
+      {
+        id: 6,
+        vendor: "Guia Empresarial Net",
+        type: "Boleto Não Solicitado",
+        value: 290.00,
+        actualPayable: 0.00,
+        dueDate: "20/Outubro (Hoje)",
+        description: "Cobrança de inserção em catálogo online. Ninguém na hamburgueria solicitou ou aprovou este serviço. É um golpe comum de boleto facultativo.",
+        correctAction: "BLOQUEAR",
+        explanation: "Correto! Boletos sem Ordem de Compra ou contrato assinado configuram cobrança indevida ou tentativa de fraude. Jamais devem ser pagos."
+      }
+    ];
+
+    let currentStudent = { name: "", studentClass: "" };
+    let currentIndex = 0;
+    let score = 0;
+    let currentBalance = 3800.00;
+    let answersRecord = [];
+
+    function formatBRL(val) {
+      return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function startSimulation() {
+      const name = document.getElementById('studentName').value.trim();
+      const studentClass = document.getElementById('studentClass').value.trim();
+
+      if (!name || !studentClass) {
+        alert("Por favor, preencha seu nome e turma para iniciar.");
+        return;
+      }
+
+      currentStudent = { name, studentClass };
+      document.getElementById('userBadge').innerText = `${name} (${studentClass})`;
+      document.getElementById('userBadge').style.display = 'block';
+
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('simScreen').style.display = 'block';
+
+      loadCurrentCard();
+    }
+
+    function loadCurrentCard() {
+      const item = cases[currentIndex];
+      document.getElementById('balanceDisplay').innerText = formatBRL(currentBalance);
+      document.getElementById('progressDisplay').innerText = `Item ${currentIndex + 1} de ${cases.length}`;
+      document.getElementById('docVendor').innerText = item.vendor;
+      document.getElementById('docType').innerText = item.type;
+      document.getElementById('docValue').innerText = formatBRL(item.value);
+      document.getElementById('docDueDate').innerText = item.dueDate;
+      document.getElementById('docDescription').innerText = item.description;
+
+      document.getElementById('actionButtons').style.display = 'grid';
+      document.getElementById('feedbackBox').style.display = 'none';
+    }
+
+    function makeDecision(actionChosen) {
+      const item = cases[currentIndex];
+      const isCorrect = action
