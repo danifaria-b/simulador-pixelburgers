@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PixelBurgers - Simulador de Contas a Pagar</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --card-inner: #0b1329;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px;
+    }
+
+    /* Utilitário de telas para evitar qualquer falha de carregamento */
+    .view-panel {
+      display: none !important;
+    }
+    .view-panel.active-view {
+      display: block !important;
+    }
+
+    /* Cabeçalho superior */
+    header {
+      width: 100%;
+      max-width: 650px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .badge-info {
+      font-size: 0.85rem;
+      color: var(--primary);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-weight: 500;
+    }
+
+    .btn-aux {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-aux:hover {
+      color: var(--text-main);
+      border-color: var(--text-sub);
+    }
+
+    /* Container base */
+    .card-container {
+      width: 100%;
+      max-width: 650px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+    }
+
+    /* Formulários e Tipografia */
+    h1, h2, h3 {
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    p {
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+
+    .field-group {
+      margin-bottom: 18px;
+      text-align: left;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    input[type="text"], input[type="password"], select {
+      width: 100%;
+      padding: 13px 14px;
+      background-color: var(--card-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+
+    /* Botão Primário */
+    .btn-main {
+      width: 100%;
+      background-color: var(--primary);
+      color: #042940;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    .btn-main:hover {
+      background-color: var(--primary-hover);
+      color: #ffffff;
+    }
+    .btn-main:active {
+      transform: scale(0.99);
+    }
+
+    /* Dashboard do Caixa */
+    .bank-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-inner);
+      padding: 14px 18px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+    .status-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-sub);
+    }
+    .balance-val {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--success);
+    }
+    .step-tag {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Ficha do Documento */
+    .invoice-card {
+      background: var(--card-inner);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .invoice-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+    .vendor-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .modality-chip {
+      background: var(--border-color);
+      color: var(--primary);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+    .detail-label {
+      color: var(--text-sub);
+    }
+    .detail-content {
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+    .situation-box {
+      margin-top: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      border-left: 3px solid var(--primary);
+    }
+
+    /* Botões de Ação */
+    .decision-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .btn-choice {
+      padding: 14px 6px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-choice:hover { opacity: 0.92; }
+    .btn-choice:active { transform: scale(0.98); }
+
+    .opt-pay { background: var(--success); color: #022c22; }
+    .opt-defer { background: var(--warning); color: #451a03; }
+    .opt-block { background: var(--danger); color: #450a0a; }
+
+    /* Caixa de Feedback pedagógico */
+    .feedback-box {
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 18px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      display: none;
+      text-align: left;
+    }
+    .feedback-box.correct {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid var(--success);
+      color: #86efac;
+    }
+    .feedback-box.incorrect {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid var(--danger);
+      color: #fca5a5;
+    }
+
+    /* Mensagem de Erro de Validação */
+    .validation-alert {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+      display: none;
+      font-weight: 600;
+      background: rgba(239, 68, 68, 0.1);
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    /* Tabela da Área do Professor */
+    .table-wrapper {
+      max-height: 380px;
+      overflow-y: auto;
+      margin-top: 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    th {
+      background: var(--card-inner);
+      color: var(--primary);
+      position: sticky;
+      top: 0;
+    }
+    tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.02); }
+
+    @media (max-width: 520px) {
+      .decision-row {
+        grid-template-columns: 1fr;
+      }
+      .card-container {
+        padding: 20px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div id="studentBadge" class="badge-info" style="visibility: hidden;">Aluno</div>
+    <button type="button" class="btn-aux" id="btnToggleProf">Área da Professora</button>
+  </header>
+
+  <!-- VIEW 1: IDENTIFICAÇÃO DO ALUNO (TELA ATIVA INICIAL) -->
+  <main id="viewLogin" class="card-container view-panel active-view">
+    <h2 style="margin-bottom: 8px;">PixelBurgers: Contas a Pagar</h2>
+    <p style="margin-bottom: 22px; font-size: 0.95rem;">
+      Simulador de Operações Financeiras e Fluxo de Caixa. Hoje é <strong>20 de Outubro</strong>.
+    </p>
+
+    <div id="loginValidationMsg" class="validation-alert">
+      Preencha seu nome e selecione a turma para começar.
+    </div>
+
+    <div class="field-group">
+      <label for="inputStudentName">Nome Completo do Aluno:</label>
+      <input type="text" id="inputStudentName" placeholder="Ex: Lucas Gabriel da Silva" autocomplete="off">
+    </div>
+
+    <div class="field-group">
+      <label for="selectStudentClass">Selecione sua Turma:</label>
+      <select id="selectStudentClass">
+        <option value="">-- Escolha sua turma --</option>
+        <option value="2º Ano A">2º Ano A</option>
+        <option value="2º Ano B">2º Ano B</option>
+        <option value="Outra Turma">Outra Turma / Visitante</option>
+      </select>
+    </div>
+
+    <button type="button" class="btn-main" id="btnStartGame">Iniciar Análise Financeira</button>
+  </main>
+
+  <!-- VIEW 2: SIMULADOR DE DOCUMENTOS -->
+  <main id="viewSim" class="card-container view-panel">
+    <div class="bank-status">
+      <div>
+        <div class="status-title">Saldo Bancário Disponível</div>
+        <div class="balance-val" id="dispCurrentBalance">R$ 3.800,00</div>
+      </div>
+      <div class="step-tag" id="dispStepIndicator">Item 1 de 6</div>
+    </div>
+
+    <div class="invoice-card">
+      <div class="invoice-top">
+        <span class="vendor-name" id="dispVendor">Panificadora</span>
+        <span class="modality-chip" id="dispModality">Boleto</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Valor Original / Corrigido:</span>
+        <span class="detail-content" id="dispValue">R$ 0,00</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Vencimento:</span>
+        <span class="detail-content" id="dispDueDate">20/Outubro</span>
+      </div>
+
+      <div class="situation-box" id="dispDescription">
+        Conferência da mercadoria e nota fiscal.
+      </div>
+    </div>
+
+    <!-- Grade de Ações de Decisão -->
+    <div class="decision-row" id="decisionContainer">
+      <button type="button" class="btn-choice opt-pay" id="btnActionPay">Pagar Hoje</button>
+      <button type="button" class="btn-choice opt-defer" id="btnActionDefer">Agendar Vencimento</button>
+      <button type="button" class="btn-choice opt-block" id="btnActionBlock">Bloquear / Recusar</button>
+    </div>
+
+    <!-- Bloco de Feedback Explicativo -->
+    <div id="feedbackContainer" class="feedback-box">
+      <div id="feedbackMessage" style="margin-bottom: 12px;"></div>
+      <button type="button" class="btn-main" id="btnNextItem">Próximo Documento</button>
+    </div>
+  </main>
+
+  <!-- VIEW 3: RESULTADO FINAL -->
+  <main id="viewResult" class="card-container view-panel" style="text-align: center;">
+    <h2 style="margin-bottom: 8px;">Fechamento de Caixa Concluído</h2>
+    <p style="margin-bottom: 20px;">Relatório de conformidade enviado com sucesso.</p>
+
+    <div style="font-size: 2.8rem; font-weight: 800; color: var(--primary); margin-bottom: 6px;" id="dispScore">
+      0/6
+    </div>
+    <p id="dispScoreMessage" style="font-weight: 600; margin-bottom: 20px; color: #cbd5e1;">Desempenho</p>
+
+    <div class="bank-status" style="justify-content: center; text-align: center; margin-bottom: 24px;">
+      <div>
+        <div class="status-title">Saldo Bancário Consolidado</div>
+        <div class="balance-val" id="dispFinalBalance">R$ 0,00</div>
+      </div>
+    </div>
+
+    <button type="button" class="btn-main" id="btnRestartGame">Realizar Novo Exercício</button>
+  </main>
+
+  <!-- VIEW 4: PAINEL DA PROFESSORA -->
+  <main id="viewTeacher" class="card-container view-panel">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h2>Relatório da Professora</h2>
+      <button type="button" class="btn-aux" id="btnCloseProfView">Fechar</button>
+    </div>
+
+    <div id="profAuthSection">
+      <p style="margin-bottom: 12px; font-size: 0.9rem;">Insira a senha de supervisão para acessar os dados dos alunos:</p>
+      <div class="field-group">
+        <input type="password" id="inputProfPass" placeholder="Senha mestra (prof123)">
+      </div>
+      <div id="profAuthError" class="validation-alert">Senha incorreta. Tente novamente.</div>
+      <button type="button" class="btn-main" id="btnSubmitProfPass">Acessar Histórico de Alunos</button>
+    </div>
+
+    <div id="profContentSection" style="display: none;">
+      <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+        <button type="button" class="btn-aux" id="btnDownloadCSV">Baixar Planilha (CSV)</button>
+        <button type="button" class="btn-aux" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.4);" id="btnClearData">
+          Limpar Registro Local
+        </button>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Data/Hora</th>
+              <th>Aluno</th>
+              <th>Turma</th>
+              <th>Nota</th>
+              <th>Saldo Final</th>
+            </tr>
+          </thead>
+          <tbody id="tableStudentResults">
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--text-sub);">Nenhum envio registrado.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /* DADOS E CASOS DIDÁTICOS (Equilíbrio de Regras Financeiras e Atenção) */
+    const casesData = [
+      {
+        id: 1,
+        vendor: "Panificadora Trigo Dourado",
+        modality: "Boleto Bancário",
+        value: 650.00,
+        amountDeducted: 650.00,
+        dueDate: "20/Outubro (Hoje)",
+        description: "Pedido de 500 pães artesanais. A Nota Fiscal foi anexada junto ao canhoto assinado pelo chefe de cozinha confirmando o recebimento completo e sem avarias.",
+        expectedAction: "PAGAR",
+        rationale: "Correto! O processo de conferência física e fiscal foi aprovado e o boleto vence hoje. Pagamento regularizado com sucesso."
+      },
+      {
+        id: 2,
+        vendor: "Cia de Energia Elétrica",
+        modality: "Boleto em Atraso",
+        value: 818.50, // 800 + multa/juros
+        amountDeducted: 818.50,
+        dueDate: "15/Outubro (Vencido há 5 dias)",
+        description: "Conta de consumo de energia que ficou represada. Se não for paga hoje haverá aviso de corte elétrico imediato. Valor corrigido com juros e multa: R$ 818,50.",
+        expectedAction: "PAGAR",
+        rationale: "Correto! Serviços públicos essenciais em atraso devem ter liquidação imediata para evitar paralisação das atividades operacionais da empresa."
+      },
+      {
+        id: 3,
+        vendor: "Técnico Autônomo João (Fritadeira)",
+        modality: "Chave Pix Pessoal",
+        value: 450.00,
+        amountDeducted: 0.00,
+        dueDate: "Cobrança Imediata",
+        description: "O conserto emergencial foi realizado ontem. O técnico enviou mensagem solicitando Pix para sua conta de pessoa física, sem emissão de Nota Fiscal ou Recibo formal (RPA).",
+        expectedAction: "BLOQUEAR",
+        rationale: "Correto! Toda saída de caixa de uma empresa exige documentação contábil hábil e idônea (Nota Fiscal ou recibo com retenções). O pagamento fica bloqueado até a regularização fiscal."
+      },
+      {
+        id: 4,
+        vendor: "Embalagens Silva",
+        modality: "Cheque Compensável",
+        value: 1200.00,
+        amountDeducted: 1200.00,
+        dueDate: "Compromisso para Hoje (20/10)",
+        description: "Cheque nominal e cruzado emitido no início do mês com acordo de compensação pré-datada para hoje. O fornecedor depositará a folha na conta bancária nesta data.",
+        expectedAction: "PAGAR",
+        rationale: "Correto! No caso de cheques já emitidos, o setor de Contas a Pagar deve assegurar a provisão de fundos no banco para evitar a devolução de cheque sem fundos (motivos 11/12)."
+      },
+      {
+        id: 5,
+        vendor: "Imobiliária Aliança (Aluguel)",
+        modality: "Boleto Bancário",
+        value: 2200.00,
+        amountDeducted: 0.00,
+        dueDate: "28/Outubro (Daqui a 8 dias)",
+        description: "Fatura de aluguel do ponto comercial. O contrato estipula que pagamentos antecipados não concedem direito a nenhum desconto comercial.",
+        expectedAction: "AGENDAR",
+        rationale: "Correto! Antecipar pagamentos sem desconto prejudica o capital de giro e o fluxo de caixa diário. A prática saudável é realizar o agendamento para a data original de vencimento."
+      },
+      {
+        id: 6,
+        vendor: "Guia Empresarial Net",
+        modality: "Boleto Não Solicitado",
+        value: 290.00,
+        amountDeducted: 0.00,
+        dueDate: "20/Outubro (Hoje)",
+        description: "Cobrança bancária referente a anúncio em catálogo de internet. A administração confirma que ninguém aprovou ou assinou proposta comercial com esta empresa.",
+        expectedAction: "BLOQUEAR",
+        rationale: "Correto! Trata-se do clássico golpe do boleto facultativo/indevido. Como não há Ordem de Compra ou contrato legítimo aprovado, o documento deve ser prontamente recusado."
+      }
+    ];
+
+    /* ESTADO DA APLICAÇÃO */
+    const appState = {
+      studentName: "",
+      studentClass: "",
+      currentIndex: 0,
+      score: 0,
+      balance: 3800.00,
+      logDetails: []
+    };
+
+    /* ELEMENTOS DO DOM */
+    const views = {
+      login: document.getElementById('viewLogin'),
+      sim: document.getElementById('viewSim'),
+      result: document.getElementById('viewResult'),
+      teacher: document.getElementById('viewTeacher')
+    };
+
+    const studentBadge = document.getElementById('studentBadge');
+    const inputStudentName = document.getElementById('inputStudentName');
+    const selectStudentClass = document.getElementById('selectStudentClass');
+    const loginValidationMsg = document.getElementById('loginValidationMsg');
+
+    const dispCurrentBalance = document.getElementById('dispCurrentBalance');
+    const dispStepIndicator = document.getElementById('dispStepIndicator');
+    const dispVendor = document.getElementById('dispVendor');
+    const dispModality = document.getElementById('dispModality');
+    const dispValue = document.getElementById('dispValue');
+    const dispDueDate = document.getElementById('dispDueDate');
+    const dispDescription = document.getElementById('dispDescription');
+
+    const decisionContainer = document.getElementById('decisionContainer');
+    const feedbackContainer = document.getElementById('feedbackContainer');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+
+    const dispScore = document.getElementById('dispScore');
+    const dispScoreMessage = document.getElementById('dispScoreMessage');
+    const dispFinalBalance = document.getElementById('dispFinalBalance');
+
+    const profAuthSection = document.getElementById('profAuthSection');
+    const profContentSection = document.getElementById('profContentSection');
+    const inputProfPass = document.getElementById('inputProfPass');
+    const profAuthError = document.getElementById('profAuthError');
+    const tableStudentResults = document.getElementById('tableStudentResults');
+
+    /* NAVEGADOR DE VIEWS ROBUSTO (Elimina qualquer risco de travamento de tela) */
+    function switchView(targetKey) {
+      Object.keys(views).forEach(key => {
+        if (views[key]) {
+          views[key].classList.remove('active-view');
+        }
+      });
+      if (views[targetKey]) {
+        views[targetKey].classList.add('active-view');
+      }
+      window.scrollTo(0, 0);
+    }
+
+    function formatCurrency(val) {
+      return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    /* INÍCIO DA SIMULAÇÃO PELO ALUNO */
+    function onStartGame() {
+      const name = inputStudentName.value.trim();
+      const turma = selectStudentClass.value.trim();
+
+      if (!name || !turma) {
+        loginValidationMsg.style.display = 'block';
+        return;
+      }
+
+      loginValidationMsg.style.display = 'none';
+      appState.studentName = name;
+      appState.studentClass = turma;
+      appState.currentIndex = 0;
+      appState.score = 0;
+      appState.balance = 3800.00;
+      appState.logDetails = [];
+
+      studentBadge.textContent = `${name} | ${turma}`;
+      studentBadge.style.visibility = 'visible';
+
+      renderDocumentCard();
+      switchView('sim');
+    }
+
+    /* CARREGAMENTO DE CADA DOCUMENTO */
+    function renderDocumentCard() {
+      const item = casesData[appState.currentIndex];
+
+      dispCurrentBalance.textContent = formatCurrency(appState.balance);
+      dispStepIndicator.textContent = `Item ${appState.currentIndex + 1} de ${casesData.length}`;
+      dispVendor.textContent = item.vendor;
+      dispModality.textContent = item.modality;
+      dispValue.textContent = formatCurrency(item.value);
+      dispDueDate.textContent = item.dueDate;
+      dispDescription.textContent = item.description;
+
+      decisionContainer.style.display = 'grid';
+      feedbackContainer.style.display = 'none';
+    }
+
+    /* PROCESSAMENTO DA ESCOLHA */
+    function handleDecision(choice) {
+      const item = casesData[appState.currentIndex];
+      const isCorrect = (choice === item.expectedAction);
+
+      if (isCorrect) {
+        appState.score++;
+      }
+
+      if (choice === 'PAGAR') {
+        appState.balance -= item.amountDeducted;
+      }
+
+      appState.logDetails.push({
+        id: item.id,
+        vendor: item.vendor,
+        decision: choice,
+        correct: isCorrect
+      });
+
+      // Feedback sem linguagem pejorativa, calibrado para TDAH
+      feedbackContainer.className = `feedback-box ${isCorrect ? 'correct' : 'incorrect'}`;
+      const headerTitle = isCorrect ? "Decisão Estratégica Correta!" : "Atenção ao Procedimento Operacional:";
+      feedbackMessage.innerHTML = `<strong>${headerTitle}</strong><br>${item.rationale}`;
+
+      dispCurrentBalance.textContent = formatCurrency(appState.balance);
+      decisionContainer.style.display = 'none';
+      feedbackContainer.style.display = 'block';
+    }
+
+    function onNextDocument() {
+      appState.currentIndex++;
+      if (appState.currentIndex < casesData.length) {
+        renderDocumentCard();
+      } else {
+        showFinalResults();
+      }
+    }
+
+    /* FINALIZAÇÃO E REGISTRO */
+    function showFinalResults() {
+      dispScore.textContent = `${appState.score} / ${casesData.length}`;
+      dispFinalBalance.textContent = formatCurrency(appState.balance);
+
+      let msg = "";
+      if (appState.score === 6) {
+        msg = "Desempenho Impecável! Você garantiu as regras de conformidade e protegeu o caixa.";
+      } else if (appState.score >= 4) {
+        msg = "Bom trabalho! O caixa operou seguro e a grande maioria dos fluxos foi respeitada.";
+      } else {
+        msg = "Exercício concluído! Vale a pena revisar as etapas de conferência com a turma.";
+      }
+      dispScoreMessage.textContent = msg;
+
+      saveAttemptLocally();
+      switchView('result');
+    }
+
+    function saveAttemptLocally() {
+      try {
+        const currentData = JSON.parse(localStorage.getItem('pixelburgers_db_results') || '[]');
+        const entry = {
+          timestamp: new Date().toLocaleString('pt-BR'),
+          name: appState.studentName,
+          turma: appState.studentClass,
+          score: `${appState.score}/${casesData.length}`,
+          finalBalance: formatCurrency(appState.balance)
+        };
+        currentData.push(entry);
+        localStorage.setItem('pixelburgers_db_results', JSON.stringify(currentData));
+      } catch (e) {
+        console.warn("Armazenamento local indisponível:", e);
+      }
+    }
+
+    /* ÁREA DA PROFESSORA */
+    function openTeacherView() {
+      inputProfPass.value = "";
+      profAuthError.style.display = "none";
+      profAuthSection.style.display = "block";
+      profContentSection.style.display = "none";
+      switchView('teacher');
+    }
+
+    function closeTeacherView() {
+      if (appState.studentName) {
+        if (appState.currentIndex < casesData.length) {
+          switchView('sim');
+        } else {
+          switchView('result');
+        }
+      } else {
+        switchView('login');
+      }
+    }
+
+    function onVerifyProfPass() {
+      const pass = inputProfPass.value.trim();
+      if (pass === "prof123") {
+        profAuthError.style.display = "none";
+        profAuthSection.style.display = "none";
+        profContentSection.style.display = "block";
+        populateTeacherTable();
+      } else {
+        profAuthError.style.display = "block";
+      }
+    }
+
+    function populateTeacherTable() {
+      let records = [];
+      try {
+        records = JSON.parse(localStorage.getItem('pixelburgers_db_results') || '[]');
+      } catch (e) {
+        records = [];
+      }
+
+      tableStudentResults.innerHTML = "";
+
+      if (records.length === 0) {
+        tableStudentResults.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-sub); padding: 16px;">Nenhuma simulação registrada até o momento.</td></tr>`;
+        return;
+      }
+
+      // Mostra do mais recente para o mais antigo
+      records.slice().reverse().forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.timestamp}</td>
+          <td><strong>${row.name}</strong></td>
+          <td><span style="color: var(--primary); font-weight: 600;">${row.turma}</span></td>
+          <td><span style="font-weight: 700;">${row.score}</span></td>
+          <td style="color: var(--success); font-weight: 600;">${row.finalBalance}</td>
+        `;
+        tableStudentResults.appendChild(tr);
+      });
+    }
+
+    function onDownloadCSV() {
+      let records = [];
+      try {
+        records = JSON.parse(localStorage.getItem('pixelburgers_db_results') || '[]');
+      } catch (e) {
+        records = [];
+      }
+
+      if (records.length === 0) {
+        alert("Não existem dados de alunos salvos para exportação.");
+        return;
+      }
+
+      let csvText = "Data e Hora;Nome do Aluno;Turma;Pontuacao;Saldo Final\n";
+      records.forEach(r => {
+        csvText += `"${r.timestamp}";"${r.name}";"${r.turma}";"${r.score}";"${r.finalBalance}"\n`;
+      });
+
+      const blob = new Blob(["\uFEFF" + csvText], { type: 'text/csv;charset=utf-8;' });
+      const downloadUrl = URL.createObjectURL(blob);
+      const tempLink = document.createElement('a');
+      tempLink.href = downloadUrl;
+      tempLink.download = 'relatorio_pixelburgers_turmas.csv';
+      document.body.appendChild(tempLink);
+      tempLink.click();
+      document.body.removeChild(tempLink);
+      URL.revokeObjectURL(downloadUrl);
+    }
+
+    function onClearLocalData() {
+      const confirmClean = window.confirm("Atenção Professora: Deseja realmente zerar o histórico de respostas salvas neste computador?");
+      if (confirmClean) {
+        try {
+          localStorage.removeItem('pixelburgers_db_results');
+          populateTeacherTable();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+
+    /* ATRIBUIÇÃO DIRETA DE EVENT LISTENERS (Sem inline javascript frágil) */
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById('btnStartGame').addEventListener('click', onStartGame);
+
+      // Suporte para dar 'Enter' na tela de identificação
+      inputStudentName.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') onStartGame();
+      });
+
+      document.getElementById('btnActionPay').addEventListener('click', () => handleDecision('PAGAR'));
+      document.getElementById('btnActionDefer').addEventListener('click', () => handleDecision('AGENDAR'));
+      document.getElementById('btnActionBlock').addEventListener('click', () => handleDecision('BLOQUEAR'));
+      document.getElementById('btnNextItem').addEventListener('click', onNextDocument);
+
+      document.getElementById('btnRestartGame').addEventListener('click', () => {
+        inputStudentName.value = "";
+        selectStudentClass.value = "";
+        studentBadge.style.visibility = 'hidden';
+        switchView('login');
+      });
+
+      document.getElementById('btnToggleProf').addEventListener('click', openTeacherView);
+      document.getElementById('btnCloseProfView').addEventListener('click', closeTeacherView);
+      document.getElementById('btnSubmitProfPass').addEventListener('click', onVerifyProfPass);
+      document.getElementById('btnDownloadCSV').addEventListener('click', onDownloadCSV);
+      document.getElementById('btnClearData').addEventListener('click', onClearLocalData);
+
+      inputProfPass.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') onVerifyProfPass();
+      });
+    });
+  </script>
+</body>
+</html>
