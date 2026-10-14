@@ -78,7 +78,6 @@
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
     }
 
-    /* Tela de Login */
     .form-group {
       margin-bottom: 20px;
     }
@@ -90,7 +89,7 @@
       color: var(--text);
     }
 
-    input[type="text"], select {
+    input[type="text"], input[type="password"] {
       width: 100%;
       padding: 12px;
       background: #0b1120;
@@ -100,12 +99,11 @@
       font-size: 1rem;
     }
 
-    input:focus, select:focus {
+    input:focus {
       outline: 2px solid var(--accent);
       border-color: transparent;
     }
 
-    /* Placar do Caixa */
     .finance-header {
       display: flex;
       justify-content: space-between;
@@ -136,7 +134,6 @@
       font-weight: 600;
     }
 
-    /* Card de Decisão */
     .doc-card {
       border: 1px solid var(--border);
       background: #131d31;
@@ -191,13 +188,8 @@
       transition: opacity 0.2s, transform 0.1s;
     }
 
-    button.btn-action:hover {
-      opacity: 0.9;
-    }
-
-    button.btn-action:active {
-      transform: scale(0.98);
-    }
+    button.btn-action:hover { opacity: 0.9; }
+    button.btn-action:active { transform: scale(0.98); }
 
     .btn-pay { background: var(--success); color: #022c22; }
     .btn-defer { background: var(--warning); color: #451a03; }
@@ -215,7 +207,6 @@
       font-size: 1rem;
     }
 
-    /* Feedback */
     .feedback-box {
       border-radius: 8px;
       padding: 16px;
@@ -237,7 +228,13 @@
       color: #fca5a5;
     }
 
-    /* Relatório Professora */
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 8px;
+      display: none;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -255,19 +252,13 @@
       background: #0b1120;
       color: var(--accent);
     }
-
-    .score-badge {
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
   </style>
 </head>
 <body>
 
   <header>
     <div id="userBadge" class="badge-user" style="display: none;"></div>
-    <button class="btn-teacher-gate" onclick="toggleTeacherView()">Área da Professora</button>
+    <button class="btn-teacher-gate" type="button" onclick="toggleTeacherView()">Área da Professora</button>
   </header>
 
   <!-- TELA 1: LOGIN ALUNO -->
@@ -277,17 +268,21 @@
       Identifique-se para assumir o controle do Contas a Pagar no dia 20 de Outubro.
     </p>
 
-    <div class="form-group">
-      <label for="studentName">Nome Completo:</label>
-      <input type="text" id="studentName" placeholder="Ex: Lucas Ribeiro" autocomplete="off">
-    </div>
+    <form id="loginForm" onsubmit="handleStartSimulation(event)">
+      <div class="form-group">
+        <label for="studentName">Nome Completo:</label>
+        <input type="text" id="studentName" placeholder="Ex: Lucas Ribeiro" required autocomplete="name">
+      </div>
 
-    <div class="form-group">
-      <label for="studentClass">Turma / Período:</label>
-      <input type="text" id="studentClass" placeholder="Ex: 1º Ano B - Matutino" autocomplete="off">
-    </div>
+      <div class="form-group">
+        <label for="studentClass">Turma / Período:</label>
+        <input type="text" id="studentClass" placeholder="Ex: 1º Ano B" required>
+      </div>
 
-    <button class="btn-primary" onclick="startSimulation()">Entrar no Sistema de Pagamentos</button>
+      <div id="loginError" class="error-msg">Por favor, preencha o nome e a turma.</div>
+
+      <button type="submit" class="btn-primary" style="margin-top: 8px;">Entrar no Sistema de Pagamentos</button>
+    </form>
   </main>
 
   <!-- TELA 2: SIMULADOR -->
@@ -302,8 +297,8 @@
 
     <div class="doc-card">
       <div class="doc-title">
-        <span id="docVendor">Carregando...</span>
-        <span class="doc-type" id="docType">Boleto</span>
+        <span id="docVendor">--</span>
+        <span class="doc-type" id="docType">--</span>
       </div>
       <ul class="doc-details">
         <li><strong>Valor Documentado:</strong> <span id="docValue">R$ 0,00</span></li>
@@ -314,14 +309,14 @@
     </div>
 
     <div class="actions-grid" id="actionButtons">
-      <button class="btn-action btn-pay" onclick="makeDecision('PAGAR_HOJE')">Pagar Hoje</button>
-      <button class="btn-action btn-defer" onclick="makeDecision('AGENDAR')">Agendar Outra Data</button>
-      <button class="btn-action btn-block" onclick="makeDecision('BLOQUEAR')">Bloquear / Recusar</button>
+      <button type="button" class="btn-action btn-pay" onclick="makeDecision('PAGAR_HOJE')">Pagar Hoje</button>
+      <button type="button" class="btn-action btn-defer" onclick="makeDecision('AGENDAR')">Agendar Outra Data</button>
+      <button type="button" class="btn-action btn-block" onclick="makeDecision('BLOQUEAR')">Bloquear / Recusar</button>
     </div>
 
     <div id="feedbackBox" class="feedback-box">
       <div id="feedbackText" style="margin-bottom: 14px;"></div>
-      <button class="btn-primary" id="btnNext" onclick="nextDocument()">Avançar para o Próximo Documento</button>
+      <button type="button" class="btn-primary" id="btnNext" onclick="nextDocument()">Avançar para o Próximo Documento</button>
     </div>
   </main>
 
@@ -344,158 +339,17 @@
       </div>
     </div>
 
-    <button class="btn-primary" onclick="location.reload()" style="margin-top: 16px;">Reiniciar Simulação</button>
+    <button type="button" class="btn-primary" onclick="location.reload()" style="margin-top: 16px;">Reiniciar Simulação</button>
   </main>
 
   <!-- TELA 4: PAINEL DA PROFESSORA -->
   <main id="teacherScreen" class="container" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
       <h2>Painel da Professora</h2>
-      <button class="btn-teacher-gate" onclick="exitTeacherView()">Voltar ao Jogo</button>
+      <button type="button" class="btn-teacher-gate" onclick="exitTeacherView()">Voltar</button>
     </div>
 
     <div id="teacherAuth">
       <p style="margin-bottom: 12px; font-size: 0.9rem; color: var(--text-muted);">Digite a senha mestra para visualizar as notas:</p>
-      <input type="password" id="teacherPass" placeholder="Senha mestra (padrão: prof123)" style="margin-bottom: 12px;">
-      <button class="btn-primary" onclick="verifyTeacherPass()">Acessar Relatório</button>
-    </div>
-
-    <div id="teacherData" style="display: none;">
-      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-        <button class="btn-teacher-gate" onclick="exportToCSV()">Exportar Planilha (CSV)</button>
-        <button class="btn-teacher-gate" style="color: var(--danger);" onclick="clearAllData()">Limpar Histórico</button>
-      </div>
-      <div style="overflow-x: auto;">
-        <table id="resultsTable">
-          <thead>
-            <tr>
-              <th>Data/Hora</th>
-              <th>Aluno</th>
-              <th>Turma</th>
-              <th>Acertos</th>
-              <th>Saldo Final</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </main>
-
-  <script>
-    // CASOS DIDÁTICOS (Equilíbrio de regras e consequências financeiras)
-    const cases = [
-      {
-        id: 1,
-        vendor: "Panificadora Trigo Dourado",
-        type: "Boleto",
-        value: 650.00,
-        actualPayable: 650.00,
-        dueDate: "20/Outubro (Hoje)",
-        description: "500 pães artesanais entregues. A Nota Fiscal foi conferida e tem a assinatura física do cozinheiro chefe no canhoto.",
-        correctAction: "PAGAR_HOJE",
-        explanation: "Correto! O serviço/produto foi conferido fisicamente, a NF é legítima e o vencimento é hoje. Pagamento regularizado."
-      },
-      {
-        id: 2,
-        vendor: "Cia de Energia Elétrica",
-        type: "Boleto em Atraso",
-        value: 800.00,
-        actualPayable: 818.50, // com multa e juros
-        dueDate: "15/Outubro (Vencido há 5 dias)",
-        description: "Ficou esquecida na gaveta. Se não for paga hoje haverá corte. Há acréscimo de 2% de multa + juros diários (Total a pagar: R$ 818,50).",
-        correctAction: "PAGAR_HOJE",
-        explanation: "Correto! Contas essenciais vencidas devem ser quitadas imediatamente para evitar suspensão das atividades da hamburgueria."
-      },
-      {
-        id: 3,
-        vendor: "Técnico Autônomo João (Fritadeira)",
-        type: "Cobrança via Chave Pix",
-        value: 450.00,
-        actualPayable: 0.00,
-        dueDate: "Cobrança Imediata",
-        description: "O conserto foi realizado ontem, mas o prestador enviou apenas a chave Pix por mensagem, sem emitir Nota Fiscal ou Recibo formal.",
-        correctAction: "BLOQUEAR",
-        explanation: "Correto! Uma empresa não pode fazer transferências sem documento contábil comprobatório (NF ou recibo legal). O pagamento fica suspenso até a emissão do documento."
-      },
-      {
-        id: 4,
-        vendor: "Embalagens Silva",
-        type: "Cheque Compensável",
-        value: 1200.00,
-        actualPayable: 1200.00,
-        dueDate: "Compromisso para Hoje (20/10)",
-        description: "Cheque pré-datado, nominal e cruzado emitido no início do mês. O fornecedor depositará hoje no banco conforme acordado.",
-        correctAction: "PAGAR_HOJE",
-        explanation: "Correto! O cheque já está assinado nas mãos do credor. A função do Contas a Pagar é garantir e liberar saldo suficiente para o cheque não voltar sem fundos."
-      },
-      {
-        id: 5,
-        vendor: "Imobiliária Aliança (Aluguel)",
-        type: "Boleto",
-        value: 2200.00,
-        actualPayable: 0.00,
-        dueDate: "28/Outubro (Daqui a 8 dias)",
-        description: "Boleto do aluguel do mês. Não há desconto comercial para antecipação de pagamento.",
-        correctAction: "AGENDAR",
-        explanation: "Correto! Antecipar sem desconto quebra o fluxo de caixa da empresa desnecessariamente. Deve-se agendar para o dia do vencimento."
-      },
-      {
-        id: 6,
-        vendor: "Guia Empresarial Net",
-        type: "Boleto Não Solicitado",
-        value: 290.00,
-        actualPayable: 0.00,
-        dueDate: "20/Outubro (Hoje)",
-        description: "Cobrança de inserção em catálogo online. Ninguém na hamburgueria solicitou ou aprovou este serviço. É um golpe comum de boleto facultativo.",
-        correctAction: "BLOQUEAR",
-        explanation: "Correto! Boletos sem Ordem de Compra ou contrato assinado configuram cobrança indevida ou tentativa de fraude. Jamais devem ser pagos."
-      }
-    ];
-
-    let currentStudent = { name: "", studentClass: "" };
-    let currentIndex = 0;
-    let score = 0;
-    let currentBalance = 3800.00;
-    let answersRecord = [];
-
-    function formatBRL(val) {
-      return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    }
-
-    function startSimulation() {
-      const name = document.getElementById('studentName').value.trim();
-      const studentClass = document.getElementById('studentClass').value.trim();
-
-      if (!name || !studentClass) {
-        alert("Por favor, preencha seu nome e turma para iniciar.");
-        return;
-      }
-
-      currentStudent = { name, studentClass };
-      document.getElementById('userBadge').innerText = `${name} (${studentClass})`;
-      document.getElementById('userBadge').style.display = 'block';
-
-      document.getElementById('authScreen').style.display = 'none';
-      document.getElementById('simScreen').style.display = 'block';
-
-      loadCurrentCard();
-    }
-
-    function loadCurrentCard() {
-      const item = cases[currentIndex];
-      document.getElementById('balanceDisplay').innerText = formatBRL(currentBalance);
-      document.getElementById('progressDisplay').innerText = `Item ${currentIndex + 1} de ${cases.length}`;
-      document.getElementById('docVendor').innerText = item.vendor;
-      document.getElementById('docType').innerText = item.type;
-      document.getElementById('docValue').innerText = formatBRL(item.value);
-      document.getElementById('docDueDate').innerText = item.dueDate;
-      document.getElementById('docDescription').innerText = item.description;
-
-      document.getElementById('actionButtons').style.display = 'grid';
-      document.getElementById('feedbackBox').style.display = 'none';
-    }
-
-    function makeDecision(actionChosen) {
-      const item = cases[currentIndex];
-      const isCorrect = action
+      <input type="password" id="teacherPass" placeholder="Senha mestra (prof123)" style="margin-bottom: 12px;">
+      <button type="button" class="btn-primary" onclick="verifyTeacherPass()">Acessar Relatório</button
